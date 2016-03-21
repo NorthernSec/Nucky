@@ -7,3 +7,6 @@ Have you ever ran into a problem while coding that you just can't seem to figure
 #: ./nucky "Why does my ****** program keep crashing?"
 Nucky: Did you rememer to deallocate your memory?
 ```
+
+# Intense development
+Nucky is under constant development. Check back soon to find out what he might have evolved into!
