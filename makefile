@@ -1,2 +1,2 @@
-all: src/ducky.cpp
-	gcc src/ducky.cpp -o bin/nucky
+all: src/ducky.c
+	gcc src/ducky.c -o bin/nucky
