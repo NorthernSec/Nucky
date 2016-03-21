@@ -13,18 +13,22 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <string.h>
 #include "knowledge.h"
 
-#define		MAX_USER_LEN	32
+#define		BUFFER_SIZE	256
 #define		NAME_OF_DUCK	"Nucky"
 #define		VERSION_MAJOR	0
 #define		VERSION_MINOR	1
 
 /* Function prototypes. */
-void		usage();
-void		listen_to_programmer(char *);
+void		remember_session(char *);
+int		listen_to_programmer();
 void		answer_to_programmer();
-const char	*seek_answer_within();
+void		usage();
+
+/* Nasty globals. */
+FILE		*session;
 
 /*
  * main():
@@ -36,12 +40,21 @@ int main(int argc, char *argv[]) {
 		exit (EXIT_FAILURE);
 	}
 
+	srand(time(NULL));
+	printf("Welcome to Nucky, the advanced virtual rubber ducky.\n");
+	printf("He will listen to you as you work your way through the debugging session.\n");
+	printf("To quit, simply write 'quit' and Nucky will remember where you left off.\n\n");
+
+	/* Have nucky talked about this issue before? */
+	remember_session(argv[1]);
+
 	/*
 	 * The super advanced thought process of Nucky.
 	 * Probably the closest to a real A.I we've ever been.
 	 */
-	listen_to_programmer(argv[1]);
-	answer_to_programmer();
+	while (listen_to_programmer()) {
+		answer_to_programmer();
+	}
 
 	exit(EXIT_SUCCESS);
 }
@@ -60,11 +73,17 @@ void usage() {
  *	Nucky always takes time to listen to your most important
  *	questions. He's always there for you. Always watching.
  */
-void listen_to_programmer(char *important_question) {
-	char programmer[MAX_USER_LEN];
+int listen_to_programmer() {
+	char buffer[BUFFER_SIZE];
 
-	getlogin_r(programmer, MAX_USER_LEN); 
-	printf("%s: %s\n", programmer, important_question);
+	printf("Input: ");
+	fgets(buffer, BUFFER_SIZE, stdin);
+	if (strncmp("quit", buffer, 4) == 0)
+		return (0);
+
+	fputs(buffer, session);
+
+	return (1);
 }
 
 /*
@@ -73,18 +92,36 @@ void listen_to_programmer(char *important_question) {
  *	answer to any question asked.
  */
 void answer_to_programmer() {
-	const char *answer = seek_answer_within();
-
-	printf("%s: %s\n", NAME_OF_DUCK, answer);
-}
-
-/*
- * seek_answer_within():
- *	The core of Nuckys deep thought process.
- */
-const char *seek_answer_within() {
-	srand(time(NULL));
 	int limit = sizeof(knowledge) / sizeof(knowledge[0]);
 	int pick = rand() % limit;
-	return (knowledge[pick].answer);
+
+	printf("%s: %s\n", NAME_OF_DUCK, knowledge[pick].answer);
+}
+/*
+ * remember_session(issue):
+ *	Nucky will try his hardest to remember if he's been 
+ *	consulted with this issue before.
+ */
+void remember_session(char *issue) {
+	char memory_location[BUFFER_SIZE];
+
+	snprintf(memory_location, strlen(issue) + 10, "sessions/%s", issue);
+	if (access(memory_location, F_OK) != -1) {
+		session = fopen(memory_location, "a+");
+		char buffer[256];
+
+		fseek(session, 0, SEEK_SET);
+		while (!feof(session)) {
+			memset(buffer, 0x00, 256);
+			fscanf(session, "%[^\n]\n", buffer);
+		}
+
+		printf("%s: Last thing you told me was:\n", NAME_OF_DUCK);
+		printf("\t'%s'\n", buffer);
+		printf("%s: Did you manage to fix it?\n", NAME_OF_DUCK);
+	} else {
+		session = fopen(memory_location, "w+");
+		printf("%s: Can you explain what your code is meant to do?\n", NAME_OF_DUCK);
+
+	}
 }
