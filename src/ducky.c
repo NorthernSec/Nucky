@@ -16,13 +16,14 @@
 #include <string.h>
 #include "knowledge.h"
 
-#define		BUFFER_SIZE	256
+#define		MEMORY_STORAGE	"sessions/"
 #define		NAME_OF_DUCK	"Nucky"
+#define		BUFFER_SIZE	256
 #define		VERSION_MAJOR	0
 #define		VERSION_MINOR	1
 
 /* Function prototypes. */
-void		remember_session(char *);
+void		remember_session(const char *);
 int		listen_to_programmer();
 void		answer_to_programmer();
 void		usage();
@@ -42,8 +43,9 @@ int main(int argc, char *argv[]) {
 
 	srand(time(NULL));
 	printf("Welcome to Nucky, the advanced virtual rubber ducky.\n");
-	printf("He will listen to you as you work your way through the debugging session.\n");
-	printf("To quit, simply write 'quit' and Nucky will remember where you left off.\n\n");
+	printf("He will listen to you as you work your way through the ");
+	printf("debugging session.\nTo quit, simply write 'quit' and Nucky ");
+	printf("will remember where you left off.\n\n");
 
 	/* Have nucky talked about this issue before? */
 	remember_session(argv[1]);
@@ -64,7 +66,8 @@ int main(int argc, char *argv[]) {
  *	For those who fail to fathom the simplicity of Nucky.
  */
 void usage() {
-	printf("%s version %d.%d usage:\n", NAME_OF_DUCK, VERSION_MAJOR, VERSION_MINOR);
+	printf("%s version %d.%d usage:\n", NAME_OF_DUCK, VERSION_MAJOR,
+	    VERSION_MINOR);
 	printf("\t./nucky \"<question>\"\n");
 }
 
@@ -102,10 +105,11 @@ void answer_to_programmer() {
  *	Nucky will try his hardest to remember if he's been 
  *	consulted with this issue before.
  */
-void remember_session(char *issue) {
-	char memory_location[BUFFER_SIZE];
+void remember_session(const char *issue) {
+	char memory_location[BUFFER_SIZE + strlen(MEMORY_STORAGE)];
 
-	snprintf(memory_location, strlen(issue) + 10, "sessions/%s", issue);
+	snprintf(memory_location, strlen(issue) + strlen(MEMORY_STORAGE),
+	    "%s/%s", MEMORY_STORAGE, issue);
 	if (access(memory_location, F_OK) != -1) {
 		session = fopen(memory_location, "a+");
 		char buffer[256];
@@ -121,7 +125,7 @@ void remember_session(char *issue) {
 		printf("%s: Did you manage to fix it?\n", NAME_OF_DUCK);
 	} else {
 		session = fopen(memory_location, "w+");
-		printf("%s: Can you explain what your code is meant to do?\n", NAME_OF_DUCK);
-
+		printf("%s: Can you explain what your code is meant to do?\n",
+		    NAME_OF_DUCK);
 	}
 }
